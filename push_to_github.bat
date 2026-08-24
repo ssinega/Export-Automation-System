@@ -47,7 +47,7 @@ echo.
 
 REM ── Commit ───────────────────────────────────────────────────
 echo [4/5] Committing...
-git commit -m "Fix Vercel crash: make all pandas imports lazy across all modules" --allow-empty
+git commit -m "Fix Vercel Flask import error: remove top-level CSV init, pin numpy<2.0.0, add pyproject.toml" --allow-empty
 if errorlevel 1 (
     echo [WARN] Nothing new to commit. Trying with --allow-empty...
 )

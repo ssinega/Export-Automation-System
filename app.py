@@ -46,14 +46,6 @@ app = Flask(__name__)
 app.secret_key = Config.SECRET_KEY
 app.config["MAX_CONTENT_LENGTH"] = Config.MAX_UPLOAD_SIZE
 
-# Safely initialize CSV files on startup if filesystem is writable.
-# On Vercel the /var/task filesystem is read-only — this will silently
-# skip initialization (files bundled in Git will still be readable).
-try:
-    init_csv_files()
-except Exception as exc:
-    print(f"[App] Startup CSV initialization skipped: {exc}")
-
 
 # ──────────────────────────────────────────────────────────────
 # Helper: safe filename check
@@ -358,6 +350,11 @@ def settings():
 # ──────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
+    try:
+        init_csv_files()
+    except Exception as exc:
+        print(f"[App] Local CSV initialization: {exc}")
+
     print("\n╔══════════════════════════════════════════════╗")
     print("║   API 3 – EXPORT Automation System          ║")
     print("║   http://127.0.0.1:5000                     ║")
