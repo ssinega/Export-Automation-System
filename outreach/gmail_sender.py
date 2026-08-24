@@ -17,7 +17,6 @@ from datetime import datetime, date
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 
-import pandas as pd
 
 from config import Config
 from outreach.gmail_auth import GmailAuth
@@ -48,6 +47,7 @@ class GmailSender:
 
     def _load_sent_log(self) -> set:
         """Load set of already-sent email addresses from sent_log.csv."""
+        import pandas as pd  # lazy import
         filepath = Config.SENT_LOG_CSV
         if os.path.exists(filepath):
             df = pd.read_csv(filepath)
@@ -56,6 +56,7 @@ class GmailSender:
 
     def _log_send(self, email: str, status: str, subject: str):
         """Append a send record to sent_log.csv."""
+        import pandas as pd  # lazy import
         os.makedirs(Config.DATA_DIR, exist_ok=True)
         filepath = Config.SENT_LOG_CSV
         record = pd.DataFrame([{
@@ -71,6 +72,7 @@ class GmailSender:
 
     def _count_sent_today(self) -> int:
         """Count how many emails were sent (status=sent) today."""
+        import pandas as pd  # lazy import
         filepath = Config.SENT_LOG_CSV
         if not os.path.exists(filepath):
             return 0

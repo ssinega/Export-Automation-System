@@ -1,64 +1,86 @@
 @echo off
 setlocal enabledelayedexpansion
-title Push Export Automation to GitHub
+title Push ALL Vercel Fixes to GitHub
 
 cd /d "C:\Users\Admin\Downloads\task 1\export-automation"
 
 echo.
 echo ============================================================
-echo   EXPORT AUTOMATION SYSTEM — GitHub Push
+echo   EXPORT AUTOMATION — Push All Vercel Fixes to GitHub
 echo ============================================================
 echo.
+echo Working directory: %CD%
+echo.
 
-REM ── 1. Check if git is initialised ──────────────────────────
+REM ── Make sure git exists ─────────────────────────────────────
+git --version >nul 2>&1
+if errorlevel 1 (
+    echo [ERROR] git not found. Install Git and try again.
+    pause
+    exit /b 1
+)
+
+REM ── Check git is initialised ─────────────────────────────────
 git rev-parse --git-dir >nul 2>&1
 if errorlevel 1 (
-    echo [1/6] Initialising new git repository...
+    echo [1/5] No git repo found. Initialising...
     git init -b main
 ) else (
-    echo [1/6] Git repository already exists. OK.
+    echo [1/5] Git repo already initialised.
 )
-echo.
 
-REM ── 2. Set remote ───────────────────────────────────────────
-echo [2/6] Setting remote origin...
+REM ── Set remote ───────────────────────────────────────────────
+echo [2/5] Setting remote origin...
 git remote remove origin 2>nul
 git remote add origin https://github.com/ssinega/Export-Automation-System.git
-echo       Remote set to: https://github.com/ssinega/Export-Automation-System.git
-echo.
 
-REM ── 3. Configure branch ─────────────────────────────────────
-echo [3/6] Ensuring branch is named "main"...
+REM ── Ensure main branch ───────────────────────────────────────
 git branch -M main 2>nul
-echo.
 
-REM ── 4. Stage ALL changes ────────────────────────────────────
-echo [4/6] Staging all changed files...
+REM ── Stage ALL changes ────────────────────────────────────────
+echo [3/5] Staging all files...
 git add -A
+echo.
+echo Files staged:
 git status --short
 echo.
 
-REM ── 5. Commit ───────────────────────────────────────────────
-echo [5/6] Committing...
-git commit -m "Fix Vercel FUNCTION_INVOCATION_FAILED: lazy imports, rewrites config, python-version pin" --allow-empty
+REM ── Commit ───────────────────────────────────────────────────
+echo [4/5] Committing...
+git commit -m "Fix Vercel crash: make all pandas imports lazy across all modules" --allow-empty
+if errorlevel 1 (
+    echo [WARN] Nothing new to commit. Trying with --allow-empty...
+)
 echo.
 
-REM ── 6. Push ─────────────────────────────────────────────────
-echo [6/6] Pushing to GitHub (main branch)...
-echo       You may be prompted for your GitHub credentials.
+REM ── Push ─────────────────────────────────────────────────────
+echo [5/5] Pushing to GitHub main...
+echo       You may be prompted for GitHub credentials.
 echo.
 git push -u origin main
 
 echo.
 if errorlevel 1 (
-    echo [ERROR] Push failed. Try: git push --force-with-lease -u origin main
-) else (
-    echo ============================================================
-    echo   SUCCESS! Vercel will auto-deploy in ~30 seconds.
+    echo [WARN] Normal push failed. Trying force-with-lease...
+    git push --force-with-lease -u origin main
+)
+if errorlevel 1 (
     echo.
-    echo   Verify here:
-    echo   https://export-automation-system.vercel.app/health
+    echo [ERROR] Push failed. Check your GitHub credentials and try:
+    echo         git push -u origin main
+    echo.
+) else (
+    echo.
     echo ============================================================
+    echo   SUCCESS! Vercel will auto-deploy in approximately 30s.
+    echo.
+    echo   Test these URLs after 30 seconds:
+    echo   Health: https://export-automation-system.vercel.app/health
+    echo   Home:   https://export-automation-system.vercel.app/
+    echo ============================================================
+    echo.
+    echo Latest commit:
+    git log -1 --oneline
 )
 echo.
 pause

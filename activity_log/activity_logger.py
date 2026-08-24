@@ -10,8 +10,6 @@ Handles:
 import os
 from datetime import datetime
 
-import pandas as pd
-
 from config import Config
 
 
@@ -23,6 +21,7 @@ def init_csv_files():
     from missing files.
     """
     try:
+        import pandas as pd  # lazy import
         os.makedirs(Config.DATA_DIR, exist_ok=True)
 
         csv_files = {
@@ -53,6 +52,7 @@ def log_activity(email: str, status: str, subject: str = ""):
         subject: Email subject line.
     """
     try:
+        import pandas as pd  # lazy import
         os.makedirs(Config.DATA_DIR, exist_ok=True)
         filepath = Config.SENT_LOG_CSV
 
@@ -73,13 +73,14 @@ def log_activity(email: str, status: str, subject: str = ""):
         print(f"[Logger] Error writing activity log: {exc}")
 
 
-def get_sent_log() -> pd.DataFrame:
+def get_sent_log():
     """
     Load the complete sent log.
 
     Returns:
         DataFrame with columns: email, timestamp, status, subject.
     """
+    import pandas as pd  # lazy import
     filepath = Config.SENT_LOG_CSV
     if os.path.exists(filepath):
         return pd.read_csv(filepath)

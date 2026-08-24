@@ -7,7 +7,6 @@ and persists them to buyers.csv.
 
 import os
 import re
-import pandas as pd
 from config import Config
 
 # Regex for email extraction from raw text / HTML
@@ -114,6 +113,7 @@ def save_buyers(records: list[dict], append: bool = True) -> int:
         Number of new records saved.
     """
     try:
+        import pandas as pd  # lazy import
         os.makedirs(Config.DATA_DIR, exist_ok=True)
         filepath = Config.BUYERS_CSV
 
@@ -143,13 +143,14 @@ def save_buyers(records: list[dict], append: bool = True) -> int:
         return 0
 
 
-def load_buyers() -> pd.DataFrame:
+def load_buyers():
     """
     Load buyers from CSV.
 
     Returns:
         DataFrame with buyer records.
     """
+    import pandas as pd  # lazy import
     filepath = Config.BUYERS_CSV
     if os.path.exists(filepath):
         return pd.read_csv(filepath)

@@ -12,8 +12,6 @@ Generates:
 import os
 import io
 
-import pandas as pd
-
 from config import Config
 
 
@@ -24,6 +22,8 @@ def generate_report() -> dict:
     Returns:
         Dict with all report metrics.
     """
+    import pandas as pd  # lazy import
+
     # Buyer counts
     total_buyers = 0
     business_count = 0
@@ -62,7 +62,7 @@ def generate_report() -> dict:
     else:
         total_emails = 0
 
-    # Calculate duplicates skipped: buyers whose emails are already in sent_log.csv
+    # Calculate duplicates skipped
     if os.path.exists(Config.BUYERS_CSV) and os.path.exists(Config.SENT_LOG_CSV):
         try:
             buyers_df = pd.read_csv(Config.BUYERS_CSV)
@@ -103,6 +103,8 @@ def generate_csv_report() -> str:
     Returns:
         CSV-formatted string suitable for download.
     """
+    import pandas as pd  # lazy import
+
     report = generate_report()
 
     rows = [
@@ -130,6 +132,7 @@ def get_sent_log_data() -> list[dict]:
     Returns:
         List of log entry dicts.
     """
+    import pandas as pd  # lazy import
     filepath = Config.SENT_LOG_CSV
     if os.path.exists(filepath):
         df = pd.read_csv(filepath)

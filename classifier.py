@@ -7,7 +7,6 @@ are unavailable, so the application can still be tested end-to-end.
 """
 
 import os
-import pandas as pd
 from config import Config
 
 
@@ -136,6 +135,7 @@ def _classify_local(buyers: list[dict]) -> dict:
 def _save_classified(business: list[dict], individual: list[dict]):
     """Save classified records to their respective CSV files."""
     try:
+        import pandas as pd  # lazy import
         os.makedirs(Config.DATA_DIR, exist_ok=True)
 
         if business:
@@ -166,6 +166,8 @@ def load_classified(audience: str = "all") -> list[dict]:
     Returns:
         List of buyer dicts.
     """
+    import pandas as pd  # lazy import
+
     if not os.path.exists(Config.BUYERS_CSV):
         return []
 
