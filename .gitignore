@@ -33,3 +33,9 @@ Thumbs.db
 
 # Byte-compiled
 *.pyc
+
+# Local deployment scripts (not needed on server)
+push_to_github.bat
+
+# Runtime settings (written at runtime, not part of source)
+data/settings.json

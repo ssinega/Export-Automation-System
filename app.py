@@ -4,22 +4,27 @@ Flask Web Application
 
 Routes:
   /               – Dashboard
+  /health         – Lightweight health check (Vercel-safe)
   /upload         – CSV upload
   /classify       – AI classification
   /send           – Email campaign
   /report         – Campaign report
   /settings       – Configuration
   /download-report – CSV report download
+
+VERCEL NOTES:
+  - No code runs at module-import time except Flask initialization.
+  - All heavy operations (Gmail, Gemini, CSV writes) are lazy.
+  - GmailSender is imported inside the /send route, not at module level.
+  - pandas is imported inside the /upload route, not at module level.
 """
 
 import os
-import io
 
 from flask import (
     Flask, render_template, request, redirect, url_for,
     flash, Response, jsonify,
 )
-import pandas as pd
 
 from config import Config
 from activity_log.activity_logger import init_csv_files, count_by_status
@@ -28,7 +33,6 @@ from extraction.data_extractor import (
 )
 from validation.email_validator import is_valid_email
 from classifier import classify_emails, load_classified
-from outreach.gmail_sender import GmailSender
 from outreach.attachment_handler import check_presentation_exists
 from reports.report_generator import (
     generate_report, generate_csv_report, get_sent_log_data,
@@ -42,7 +46,9 @@ app = Flask(__name__)
 app.secret_key = Config.SECRET_KEY
 app.config["MAX_CONTENT_LENGTH"] = Config.MAX_UPLOAD_SIZE
 
-# Safely initialize CSV files on startup if filesystem is writable
+# Safely initialize CSV files on startup if filesystem is writable.
+# On Vercel the /var/task filesystem is read-only — this will silently
+# skip initialization (files bundled in Git will still be readable).
 try:
     init_csv_files()
 except Exception as exc:
@@ -66,7 +72,10 @@ def _allowed_file(filename: str) -> bool:
 
 @app.route("/health")
 def health():
-    """Lightweight health check endpoint for monitoring & Vercel."""
+    """
+    Lightweight health check – used by Vercel readiness probes
+    and manual verification.  MUST NOT touch Gmail/Gemini/CSV writes.
+    """
     return jsonify({
         "status": "ok",
         "service": "export-automation"
@@ -75,16 +84,26 @@ def health():
 
 @app.errorhandler(500)
 def internal_server_error(e):
-    """Graceful 500 error handler."""
+    """Return a JSON error instead of an unformatted 500 page."""
     return jsonify({
         "error": "Internal Server Error",
-        "message": "An unexpected error occurred. Please check server logs for details."
+        "message": "An unexpected error occurred. Check Vercel runtime logs."
     }), 500
+
 
 @app.route("/")
 def index():
     """Dashboard – overview of buyers, classifications, and campaign stats."""
-    report = generate_report()
+    try:
+        report = generate_report()
+    except Exception as exc:
+        print(f"[Dashboard] generate_report error: {exc}")
+        report = {
+            "total_buyers": 0, "business_contacts": 0,
+            "individual_contacts": 0, "total_emails": 0,
+            "successful": 0, "failed": 0, "dry_run": 0,
+            "duplicates_skipped": 0, "success_rate": 0,
+        }
     warnings = Config.validate()
     presentation = check_presentation_exists()
     return render_template(
@@ -99,8 +118,10 @@ def index():
 @app.route("/upload", methods=["GET", "POST"])
 def upload():
     """Upload CSV of buyer records."""
+    import io
+    import pandas as pd  # lazy import – large binary
+
     if request.method == "POST":
-        # Check file presence
         if "file" not in request.files:
             flash("No file selected.", "error")
             return redirect(url_for("upload"))
@@ -115,18 +136,15 @@ def upload():
             return redirect(url_for("upload"))
 
         try:
-            # Read CSV
             stream = io.StringIO(file.stream.read().decode("utf-8"))
             df = pd.read_csv(stream)
 
-            # Validate required columns
             required = set(Config.BUYER_HEADERS)
             if not required.issubset(set(df.columns)):
                 missing = required - set(df.columns)
                 flash(f"Missing columns: {', '.join(missing)}", "error")
                 return redirect(url_for("upload"))
 
-            # Validate emails and filter
             records = df.to_dict("records")
             valid_records = []
             invalid_count = 0
@@ -139,7 +157,6 @@ def upload():
                 else:
                     invalid_count += 1
 
-            # Process and save
             processed = process_search_results(valid_records)
             saved = save_buyers(processed)
 
@@ -187,7 +204,6 @@ def classify():
             "success",
         )
 
-    # Load current classified counts
     biz = load_classified("business")
     ind = load_classified("individual")
 
@@ -204,6 +220,9 @@ def classify():
 def send():
     """Send email campaign."""
     if request.method == "POST":
+        # Lazy import – only needed when this route is actually called
+        from outreach.gmail_sender import GmailSender
+
         audience = request.form.get("audience", "all")
         subject = request.form.get("subject", "").strip()
         body = request.form.get("body", "").strip()
@@ -216,7 +235,6 @@ def send():
             flash("Email body is required.", "error")
             return redirect(url_for("send"))
 
-        # Check presentation
         presentation = check_presentation_exists()
         if not presentation["exists"]:
             flash(
@@ -225,13 +243,11 @@ def send():
             )
             return redirect(url_for("send"))
 
-        # Load recipients
         recipients = load_classified(audience)
         if not recipients:
             flash("No recipients found. Classify emails first.", "error")
             return redirect(url_for("send"))
 
-        # Send campaign
         sender = GmailSender()
         results = sender.send_campaign(recipients, subject, body, attach=True)
 
@@ -302,20 +318,20 @@ def settings():
             "DEFAULT_BODY": request.form.get("default_body", Config.DEFAULT_BODY),
             "CLASSIFICATION_PREFERENCE": request.form.get("classification_preference", Config.CLASSIFICATION_PREFERENCE).strip(),
         }
-        
+
         try:
             new_settings["DAILY_SEND_LIMIT"] = int(new_settings["DAILY_SEND_LIMIT"])
             new_settings["SEND_DELAY"] = int(new_settings["SEND_DELAY"])
         except ValueError:
             flash("Daily send limit and delay must be valid integers.", "error")
             return redirect(url_for("settings"))
-            
+
         success = Config.save_custom_settings(new_settings)
         if success:
             flash("Settings updated successfully!", "success")
         else:
             flash("Failed to update settings.", "error")
-            
+
         return redirect(url_for("settings"))
 
     return render_template(
@@ -338,7 +354,7 @@ def settings():
 
 
 # ──────────────────────────────────────────────────────────────
-# Entry point
+# Entry point (local development only)
 # ──────────────────────────────────────────────────────────────
 
 if __name__ == "__main__":
