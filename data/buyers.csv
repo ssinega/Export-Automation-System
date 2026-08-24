@@ -1,0 +1,9 @@
+buyer_name,company_name,email,website,country,source_platform
+John Smith,ABC Wellness Store,john@abcwellness.com,https://abcwellness.com,USA,Google
+Maria Garcia,Zen Imports EU,maria@zenimports.eu,https://zenimports.eu,Germany,Google
+Akira Tanaka,Harmony Sound Co,akira@harmonysound.co.jp,https://harmonysound.co.jp,Japan,Google
+Sarah Johnson,Meditation Hub,sarah@meditationhub.com,https://meditationhub.com,UK,Google
+Emma Wilson,Healing Vibes Shop,emma@healingvibes.com,https://healingvibes.com,Canada,Facebook
+David Lee,Mindful Imports Inc.,david@mindfulimports.com,https://mindfulimports.com,Australia,LinkedIn
+James Brown,Holistic Products Ltd,james@holisticproducts.co.uk,https://holisticproducts.co.uk,UK,Directory
+Anna Kowalski,Zen Market Europe,anna@zenmarket.eu,https://zenmarket.eu,Poland,Directory

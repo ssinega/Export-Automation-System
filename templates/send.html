@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Send email campaigns to classified buyers">
+    <title>Send Campaign – Export Automation</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<!-- Sidebar -->
+<nav class="sidebar">
+    <div class="sidebar-brand">
+        <h2>🔔 Export Auto</h2>
+        <div class="brand-sub">Singing Bowls Automation</div>
+    </div>
+    <ul class="sidebar-nav">
+        <li><a href="/"><span class="nav-icon">📊</span><span class="nav-label">Dashboard</span></a></li>
+        <li><a href="/upload"><span class="nav-icon">📁</span><span class="nav-label">Upload CSV</span></a></li>
+        <li><a href="/classify"><span class="nav-icon">🤖</span><span class="nav-label">Classify</span></a></li>
+        <li><a href="/send" class="active"><span class="nav-icon">📧</span><span class="nav-label">Send Campaign</span></a></li>
+        <li><a href="/report"><span class="nav-icon">📈</span><span class="nav-label">Reports</span></a></li>
+        <li><a href="/settings"><span class="nav-icon">⚙️</span><span class="nav-label">Settings</span></a></li>
+    </ul>
+    <div class="sidebar-footer">API 3 – v1.0</div>
+</nav>
+
+<!-- Main Content -->
+<main class="main-content">
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-messages">
+        {% for category, message in messages %}
+        <div class="flash flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <div class="page-header">
+        <h1>Send Campaign</h1>
+        <p>Send personalized outreach emails with company presentation</p>
+    </div>
+
+    <!-- Status Banners -->
+    {% if dry_run %}
+    <div class="dry-run-banner">
+        🔒 DRY RUN mode is active — no emails will actually be sent.
+        Change DRY_RUN=false in .env to enable live sending.
+    </div>
+    {% endif %}
+
+    {% if not presentation.exists %}
+    <div class="alert alert-warning">
+        ⚠ {{ presentation.error }} — Campaign cannot proceed.
+    </div>
+    {% endif %}
+
+    {% if not gmail_configured %}
+    <div class="alert alert-warning">
+        ⚠ Gmail credentials not configured in .env.
+        {% if dry_run %}Dry-run mode will still work.{% endif %}
+    </div>
+    {% endif %}
+
+    <!-- Audience Stats -->
+    <div class="cards-grid">
+        <div class="stat-card info animate-in">
+            <div class="card-icon">🏢</div>
+            <div class="card-value">{{ business_count }}</div>
+            <div class="card-label">Business Contacts</div>
+        </div>
+        <div class="stat-card animate-in">
+            <div class="card-icon">👤</div>
+            <div class="card-value">{{ individual_count }}</div>
+            <div class="card-label">Individual Contacts</div>
+        </div>
+        <div class="stat-card success animate-in">
+            <div class="card-icon">📧</div>
+            <div class="card-value">{{ business_count + individual_count }}</div>
+            <div class="card-label">Total Available</div>
+        </div>
+    </div>
+
+    <!-- Campaign Form -->
+    <div class="panel">
+        <div class="panel-title">📧 Campaign Configuration</div>
+
+        <form method="POST" id="campaign-form" data-dryrun="{{ 'true' if dry_run else 'false' }}">
+
+            <div class="two-col">
+                <div>
+                    <!-- Audience -->
+                    <div class="form-group">
+                        <label for="audience">Target Audience</label>
+                        <select name="audience" id="audience" class="form-control">
+                            <option value="all">All Contacts ({{ business_count + individual_count }})</option>
+                            <option value="business">Business Only ({{ business_count }})</option>
+                            <option value="individual">Individual Only ({{ individual_count }})</option>
+                        </select>
+                    </div>
+
+                    <!-- Subject -->
+                    <div class="form-group">
+                        <label for="subject">Email Subject</label>
+                        <input type="text" name="subject" id="subject" class="form-control"
+                               value="Singing Bowls – Export Partnership Opportunity"
+                               placeholder="Enter email subject..." required>
+                    </div>
+                </div>
+                <div>
+                    <!-- Info Panel -->
+                    <div class="alert alert-info">
+                        <div>
+                            <strong>Personalization Variables:</strong><br>
+                            <code>{{ '{{name}}' }}</code> — Buyer's name<br>
+                            <code>{{ '{{company}}' }}</code> — Company name
+                        </div>
+                    </div>
+                    <div class="alert alert-success" style="margin-top:8px;">
+                        📎 Company presentation will be attached automatically.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Body -->
+            <div class="form-group">
+                <label for="body">Email Body</label>
+                <textarea name="body" id="body" class="form-control" required>Hello {{name}},
+
+We are an export supplier of high-quality Singing Bowls from Nepal.
+
+We would like to explore whether our products may be relevant to {{company}}.
+
+Please find our company presentation attached.
+
+Regards,
+Export Sales Team</textarea>
+            </div>
+
+            <div style="display:flex; gap:12px; align-items:center;">
+                <button type="submit" class="btn {% if dry_run %}btn-primary{% else %}btn-success{% endif %}">
+                    {% if dry_run %}🔒 Send (Dry Run){% else %}📧 Send Campaign{% endif %}
+                </button>
+                {% if not dry_run %}
+                <span style="color:var(--danger); font-size:0.85rem; font-weight:600;">
+                    ⚠ LIVE MODE — Emails will be sent for real!
+                </span>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+
+</main>
+
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

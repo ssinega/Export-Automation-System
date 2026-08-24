@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="AI-powered email classification for the Export Automation System">
+    <title>Classify Emails – Export Automation</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<!-- Sidebar -->
+<nav class="sidebar">
+    <div class="sidebar-brand">
+        <h2>🔔 Export Auto</h2>
+        <div class="brand-sub">Singing Bowls Automation</div>
+    </div>
+    <ul class="sidebar-nav">
+        <li><a href="/"><span class="nav-icon">📊</span><span class="nav-label">Dashboard</span></a></li>
+        <li><a href="/upload"><span class="nav-icon">📁</span><span class="nav-label">Upload CSV</span></a></li>
+        <li><a href="/classify" class="active"><span class="nav-icon">🤖</span><span class="nav-label">Classify</span></a></li>
+        <li><a href="/send"><span class="nav-icon">📧</span><span class="nav-label">Send Campaign</span></a></li>
+        <li><a href="/report"><span class="nav-icon">📈</span><span class="nav-label">Reports</span></a></li>
+        <li><a href="/settings"><span class="nav-icon">⚙️</span><span class="nav-label">Settings</span></a></li>
+    </ul>
+    <div class="sidebar-footer">API 3 – v1.0</div>
+</nav>
+
+<!-- Main Content -->
+<main class="main-content">
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-messages">
+        {% for category, message in messages %}
+        <div class="flash flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <div class="page-header">
+        <h1>Email Classification</h1>
+        <p>Classify buyer emails as Business or Individual using AI</p>
+    </div>
+
+    <!-- Classification Stats -->
+    <div class="cards-grid">
+        <div class="stat-card info animate-in">
+            <div class="card-icon">🏢</div>
+            <div class="card-value">{{ business_count }}</div>
+            <div class="card-label">Business Contacts</div>
+        </div>
+        <div class="stat-card animate-in">
+            <div class="card-icon">👤</div>
+            <div class="card-value">{{ individual_count }}</div>
+            <div class="card-label">Individual Contacts</div>
+        </div>
+        <div class="stat-card success animate-in">
+            <div class="card-icon">📊</div>
+            <div class="card-value">{{ total }}</div>
+            <div class="card-label">Total Classified</div>
+        </div>
+    </div>
+
+    <!-- Run Classification -->
+    <div class="panel">
+        <div class="panel-title">🤖 Run Classification</div>
+        <p style="color:var(--text-secondary); margin-bottom:20px; font-size:0.9rem;">
+            This will classify all buyer emails in the database into
+            <strong>Business</strong> (custom/company domain) and
+            <strong>Individual</strong> (free email provider) categories.
+        </p>
+
+        <div class="alert alert-info" style="margin-bottom:20px;">
+            💡 Classification uses Google Gemini AI when configured,
+            or a local domain-based fallback classifier for offline testing.
+        </div>
+
+        <form method="POST">
+            <button type="submit" class="btn btn-primary">
+                🤖 Run Classification Now
+            </button>
+        </form>
+    </div>
+
+    <!-- How it works -->
+    <div class="panel">
+        <div class="panel-title">ℹ️ How Classification Works</div>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Category</th>
+                        <th>Criteria</th>
+                        <th>Example</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td><span class="badge badge-info">BUSINESS</span></td>
+                        <td>Uses a company/custom email domain</td>
+                        <td>john@abcwellness.com</td>
+                    </tr>
+                    <tr>
+                        <td><span class="badge badge-warning">INDIVIDUAL</span></td>
+                        <td>Uses a free email provider (Gmail, Yahoo, etc.)</td>
+                        <td>john.smith@gmail.com</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+</main>
+
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

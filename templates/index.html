@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="API 3 – EXPORT Automation System Dashboard for Singing Bowls export business">
+    <title>Dashboard – Export Automation</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<!-- Sidebar -->
+<nav class="sidebar">
+    <div class="sidebar-brand">
+        <h2>🔔 Export Auto</h2>
+        <div class="brand-sub">Singing Bowls Automation</div>
+    </div>
+    <ul class="sidebar-nav">
+        <li><a href="/" class="active"><span class="nav-icon">📊</span><span class="nav-label">Dashboard</span></a></li>
+        <li><a href="/upload"><span class="nav-icon">📁</span><span class="nav-label">Upload CSV</span></a></li>
+        <li><a href="/classify"><span class="nav-icon">🤖</span><span class="nav-label">Classify</span></a></li>
+        <li><a href="/send"><span class="nav-icon">📧</span><span class="nav-label">Send Campaign</span></a></li>
+        <li><a href="/report"><span class="nav-icon">📈</span><span class="nav-label">Reports</span></a></li>
+        <li><a href="/settings"><span class="nav-icon">⚙️</span><span class="nav-label">Settings</span></a></li>
+    </ul>
+    <div class="sidebar-footer">API 3 – v1.0</div>
+</nav>
+
+<!-- Main Content -->
+<main class="main-content">
+
+    <!-- Flash messages -->
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-messages">
+        {% for category, message in messages %}
+        <div class="flash flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <!-- Dry-run banner -->
+    {% if dry_run %}
+    <div class="dry-run-banner">
+        🔒 DRY RUN mode is active — no emails will be sent.
+    </div>
+    {% endif %}
+
+    <!-- Config warnings -->
+    {% if warnings %}
+    {% for w in warnings %}
+    <div class="alert alert-warning">⚠ {{ w }}</div>
+    {% endfor %}
+    {% endif %}
+
+    <!-- Presentation check -->
+    {% if not presentation.exists %}
+    <div class="alert alert-warning">⚠ {{ presentation.error }}</div>
+    {% endif %}
+
+    <div class="page-header">
+        <h1>Dashboard</h1>
+        <p>Export Automation System overview</p>
+    </div>
+
+    <!-- Stat Cards -->
+    <div class="cards-grid">
+        <div class="stat-card animate-in">
+            <div class="card-icon">👥</div>
+            <div class="card-value">{{ report.total_buyers }}</div>
+            <div class="card-label">Total Buyers</div>
+        </div>
+        <div class="stat-card info animate-in">
+            <div class="card-icon">🏢</div>
+            <div class="card-value">{{ report.business_contacts }}</div>
+            <div class="card-label">Business Contacts</div>
+        </div>
+        <div class="stat-card animate-in">
+            <div class="card-icon">👤</div>
+            <div class="card-value">{{ report.individual_contacts }}</div>
+            <div class="card-label">Individual Contacts</div>
+        </div>
+        <div class="stat-card success animate-in">
+            <div class="card-icon">✅</div>
+            <div class="card-value">{{ report.successful }}</div>
+            <div class="card-label">Emails Sent</div>
+        </div>
+        <div class="stat-card danger animate-in">
+            <div class="card-icon">❌</div>
+            <div class="card-value">{{ report.failed }}</div>
+            <div class="card-label">Failed Sends</div>
+        </div>
+        <div class="stat-card warning animate-in">
+            <div class="card-icon">🔄</div>
+            <div class="card-value">{{ report.dry_run }}</div>
+            <div class="card-label">Dry-Run Sends</div>
+        </div>
+        <div class="stat-card animate-in">
+            <div class="card-icon">⏩</div>
+            <div class="card-value">{{ report.duplicates_skipped }}</div>
+            <div class="card-label">Duplicates Skipped</div>
+        </div>
+    </div>
+
+    <!-- Success Rate -->
+    <div class="panel">
+        <div class="panel-title">📈 Campaign Success Rate</div>
+        <div class="stat-card" style="border:none; padding:0; background:transparent;">
+            <div class="card-value" style="font-size:2.4rem;">{{ report.success_rate }}%</div>
+        </div>
+        <div class="progress-bar">
+            <div class="progress-fill success" style="width: {{ report.success_rate }}%;"></div>
+        </div>
+    </div>
+
+    <!-- Quick Actions -->
+    <div class="panel">
+        <div class="panel-title">⚡ Quick Actions</div>
+        <div style="display:flex; gap:12px; flex-wrap:wrap;">
+            <a href="/upload" class="btn btn-primary">📁 Upload Buyers</a>
+            <a href="/classify" class="btn btn-outline">🤖 Run Classification</a>
+            <a href="/send" class="btn btn-success">📧 Send Campaign</a>
+            <a href="/report" class="btn btn-outline">📈 View Report</a>
+            <a href="/download-report" class="btn btn-outline">⬇ Download CSV</a>
+        </div>
+    </div>
+
+</main>
+
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

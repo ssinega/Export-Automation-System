@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Upload buyer CSV data for the Export Automation System">
+    <title>Upload Buyers – Export Automation</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<!-- Sidebar -->
+<nav class="sidebar">
+    <div class="sidebar-brand">
+        <h2>🔔 Export Auto</h2>
+        <div class="brand-sub">Singing Bowls Automation</div>
+    </div>
+    <ul class="sidebar-nav">
+        <li><a href="/"><span class="nav-icon">📊</span><span class="nav-label">Dashboard</span></a></li>
+        <li><a href="/upload" class="active"><span class="nav-icon">📁</span><span class="nav-label">Upload CSV</span></a></li>
+        <li><a href="/classify"><span class="nav-icon">🤖</span><span class="nav-label">Classify</span></a></li>
+        <li><a href="/send"><span class="nav-icon">📧</span><span class="nav-label">Send Campaign</span></a></li>
+        <li><a href="/report"><span class="nav-icon">📈</span><span class="nav-label">Reports</span></a></li>
+        <li><a href="/settings"><span class="nav-icon">⚙️</span><span class="nav-label">Settings</span></a></li>
+    </ul>
+    <div class="sidebar-footer">API 3 – v1.0</div>
+</nav>
+
+<!-- Main Content -->
+<main class="main-content">
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-messages">
+        {% for category, message in messages %}
+        <div class="flash flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <div class="page-header">
+        <h1>Upload Buyers</h1>
+        <p>Upload a CSV file with buyer records to add to the database</p>
+    </div>
+
+    <!-- Upload Form -->
+    <div class="panel">
+        <div class="panel-title">📁 Upload CSV File</div>
+        <form method="POST" enctype="multipart/form-data">
+            <div class="upload-area">
+                <div class="upload-icon">📄</div>
+                <p class="upload-label">Drop a CSV file here or click to browse</p>
+                <p style="font-size:0.75rem; color:var(--text-muted); margin-top:8px;">
+                    Max 5 MB &bull; CSV only
+                </p>
+                <input type="file" name="file" accept=".csv" required>
+            </div>
+            <div style="margin-top:20px;">
+                <button type="submit" class="btn btn-primary">📤 Upload & Validate</button>
+            </div>
+        </form>
+    </div>
+
+    <!-- Expected Format -->
+    <div class="panel">
+        <div class="panel-title">📋 Expected CSV Format</div>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>buyer_name</th>
+                        <th>company_name</th>
+                        <th>email</th>
+                        <th>website</th>
+                        <th>country</th>
+                        <th>source_platform</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>John Smith</td>
+                        <td>ABC Wellness</td>
+                        <td>john@abcwellness.com</td>
+                        <td>https://abcwellness.com</td>
+                        <td>USA</td>
+                        <td>Google</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Current Buyers -->
+    <div class="panel">
+        <div class="panel-title">👥 Current Buyers ({{ buyers|length }})</div>
+
+        {% if buyers.empty %}
+        <div class="empty-state">
+            <div class="empty-icon">📭</div>
+            <p>No buyers in the database yet. Upload a CSV to get started.</p>
+        </div>
+        {% else %}
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Company</th>
+                        <th>Email</th>
+                        <th>Website</th>
+                        <th>Country</th>
+                        <th>Source</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for _, row in buyers.iterrows() %}
+                    <tr>
+                        <td>{{ row.buyer_name }}</td>
+                        <td>{{ row.company_name }}</td>
+                        <td>{{ row.email }}</td>
+                        <td>
+                            {% if row.website %}
+                            <a href="{{ row.website }}" target="_blank" rel="noopener">{{ row.website[:40] }}{% if row.website|length > 40 %}...{% endif %}</a>
+                            {% endif %}
+                        </td>
+                        <td>{{ row.country }}</td>
+                        <td><span class="badge badge-info">{{ row.source_platform }}</span></td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% endif %}
+    </div>
+
+</main>
+
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

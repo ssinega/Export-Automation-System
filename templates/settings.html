@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="System settings for the Export Automation System">
+    <title>Settings – Export Automation</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<!-- Sidebar -->
+<nav class="sidebar">
+    <div class="sidebar-brand">
+        <h2>🔔 Export Auto</h2>
+        <div class="brand-sub">Singing Bowls Automation</div>
+    </div>
+    <ul class="sidebar-nav">
+        <li><a href="/"><span class="nav-icon">📊</span><span class="nav-label">Dashboard</span></a></li>
+        <li><a href="/upload"><span class="nav-icon">📁</span><span class="nav-label">Upload CSV</span></a></li>
+        <li><a href="/classify"><span class="nav-icon">🤖</span><span class="nav-label">Classify</span></a></li>
+        <li><a href="/send"><span class="nav-icon">📧</span><span class="nav-label">Send Campaign</span></a></li>
+        <li><a href="/report"><span class="nav-icon">📈</span><span class="nav-label">Reports</span></a></li>
+        <li><a href="/settings" class="active"><span class="nav-icon">⚙️</span><span class="nav-label">Settings</span></a></li>
+    </ul>
+    <div class="sidebar-footer">API 3 – v1.0</div>
+</nav>
+
+<!-- Main Content -->
+<main class="main-content">
+
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-messages">
+        {% for category, message in messages %}
+        <div class="flash flash-{{ category }}">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+    {% endwith %}
+
+    <div class="page-header">
+        <h1>Settings</h1>
+        <p>Configure safe system settings and view connection status</p>
+    </div>
+
+    <!-- Config Warnings -->
+    {% if warnings %}
+    {% for w in warnings %}
+    <div class="alert alert-warning">⚠ {{ w }}</div>
+    {% endfor %}
+    {% endif %}
+
+    <form method="POST">
+        <div class="two-col">
+
+            <!-- General Settings Panel -->
+            <div class="panel">
+                <div class="panel-title">⚙️ General & Search Settings</div>
+                
+                <div class="form-group">
+                    <label for="search_keyword">Search Keyword</label>
+                    <input type="text" name="search_keyword" id="search_keyword" class="form-control"
+                           value="{{ config.search_keyword }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="daily_limit">Daily Send Limit</label>
+                    <input type="number" name="daily_limit" id="daily_limit" class="form-control"
+                           value="{{ config.daily_limit }}" min="1" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="send_delay">Delay Between Emails (seconds)</label>
+                    <input type="number" name="send_delay" id="send_delay" class="form-control"
+                           value="{{ config.send_delay }}" min="0" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="classification_preference">Classification Preference</label>
+                    <select name="classification_preference" id="classification_preference" class="form-control">
+                        <option value="gemini" {% if config.classification_preference == 'gemini' %}selected{% endif %}>Gemini AI (Fallback if offline)</option>
+                        <option value="local" {% if config.classification_preference == 'local' %}selected{% endif %}>Local Heuristic Fallback</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Email Defaults Panel -->
+            <div class="panel">
+                <div class="panel-title">📝 Campaign Defaults</div>
+                
+                <div class="form-group">
+                    <label for="default_subject">Default Subject Line</label>
+                    <input type="text" name="default_subject" id="default_subject" class="form-control"
+                           value="{{ config.default_subject }}" required>
+                </div>
+
+                <div class="form-group">
+                    <label for="default_body">Default Body Template</label>
+                    <textarea name="default_body" id="default_body" class="form-control" rows="8" required>{{ config.default_body }}</textarea>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="two-col" style="margin-top: 20px;">
+            <!-- System Credentials Panel (Read-only status) -->
+            <div class="panel">
+                <div class="panel-title">🔒 System Credentials & Paths</div>
+                <ul class="settings-list">
+                    <li>
+                        <span class="settings-label">Gmail Email</span>
+                        <span class="settings-value">{{ config.gmail_email }}</span>
+                    </li>
+                    <li>
+                        <span class="settings-label">Gmail App Password</span>
+                        <span class="settings-value">
+                            {% if config.gmail_configured %}
+                            <span class="badge badge-success">Configured</span>
+                            {% else %}
+                            <span class="badge badge-danger">Not Set</span>
+                            {% endif %}
+                        </span>
+                    </li>
+                    <li>
+                        <span class="settings-label">Gemini API Key</span>
+                        <span class="settings-value">
+                            {% if config.gemini_configured %}
+                            <span class="badge badge-success">Configured</span>
+                            {% else %}
+                            <span class="badge badge-warning">Not Set (Local fallback)</span>
+                            {% endif %}
+                        </span>
+                    </li>
+                    <li>
+                        <span class="settings-label">Presentation PDF Path</span>
+                        <span class="settings-value"><code>{{ config.presentation_path }}</code></span>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Save Panel -->
+            <div class="panel" style="display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;">
+                <p style="color: var(--text-secondary); margin-bottom: 20px; font-size: 0.9rem;">
+                    Changes to safe non-secret settings are saved to <code>data/settings.json</code> and loaded instantly. Credentials must still be configured in the <code>.env</code> file.
+                </p>
+                <button type="submit" class="btn btn-primary btn-lg" style="width: 100%;">💾 Save Settings</button>
+            </div>
+        </div>
+    </form>
+
+</main>
+
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

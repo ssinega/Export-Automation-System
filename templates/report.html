@@ -1,0 +1,194 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Campaign report and analytics for the Export Automation System">
+    <title>Reports – Export Automation</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+
+<!-- Sidebar -->
+<nav class="sidebar">
+    <div class="sidebar-brand">
+        <h2>🔔 Export Auto</h2>
+        <div class="brand-sub">Singing Bowls Automation</div>
+    </div>
+    <ul class="sidebar-nav">
+        <li><a href="/"><span class="nav-icon">📊</span><span class="nav-label">Dashboard</span></a></li>
+        <li><a href="/upload"><span class="nav-icon">📁</span><span class="nav-label">Upload CSV</span></a></li>
+        <li><a href="/classify"><span class="nav-icon">🤖</span><span class="nav-label">Classify</span></a></li>
+        <li><a href="/send"><span class="nav-icon">📧</span><span class="nav-label">Send Campaign</span></a></li>
+        <li><a href="/report" class="active"><span class="nav-icon">📈</span><span class="nav-label">Reports</span></a></li>
+        <li><a href="/settings"><span class="nav-icon">⚙️</span><span class="nav-label">Settings</span></a></li>
+    </ul>
+    <div class="sidebar-footer">API 3 – v1.0</div>
+</nav>
+
+<!-- Main Content -->
+<main class="main-content">
+
+    <div class="page-header">
+        <h1>Campaign Report</h1>
+        <p>Analytics and statistics for email campaigns</p>
+    </div>
+
+    <!-- Overview Cards -->
+    <div class="cards-grid">
+        <div class="stat-card animate-in">
+            <div class="card-icon">👥</div>
+            <div class="card-value">{{ report.total_buyers }}</div>
+            <div class="card-label">Total Buyers</div>
+        </div>
+        <div class="stat-card info animate-in">
+            <div class="card-icon">📧</div>
+            <div class="card-value">{{ report.total_emails }}</div>
+            <div class="card-label">Emails Processed</div>
+        </div>
+        <div class="stat-card success animate-in">
+            <div class="card-icon">✅</div>
+            <div class="card-value">{{ report.successful }}</div>
+            <div class="card-label">Successful Sends</div>
+        </div>
+        <div class="stat-card danger animate-in">
+            <div class="card-icon">❌</div>
+            <div class="card-value">{{ report.failed }}</div>
+            <div class="card-label">Failed Sends</div>
+        </div>
+        <div class="stat-card warning animate-in">
+            <div class="card-icon">⏩</div>
+            <div class="card-value">{{ report.duplicates_skipped }}</div>
+            <div class="card-label">Duplicates Skipped</div>
+        </div>
+    </div>
+
+    <!-- Summary Panel -->
+    <div class="two-col">
+        <div class="panel">
+            <div class="panel-title">📊 Campaign Summary</div>
+            <ul class="settings-list">
+                <li>
+                    <span class="settings-label">Total Buyers</span>
+                    <span class="settings-value">{{ report.total_buyers }}</span>
+                </li>
+                <li>
+                    <span class="settings-label">Business Contacts</span>
+                    <span class="settings-value">{{ report.business_contacts }}</span>
+                </li>
+                <li>
+                    <span class="settings-label">Individual Contacts</span>
+                    <span class="settings-value">{{ report.individual_contacts }}</span>
+                </li>
+                <li>
+                    <span class="settings-label">Emails Processed</span>
+                    <span class="settings-value">{{ report.total_emails }}</span>
+                </li>
+                <li>
+                    <span class="settings-label">Successful Sends</span>
+                    <span class="settings-value" style="color:var(--success);">{{ report.successful }}</span>
+                </li>
+                <li>
+                    <span class="settings-label">Failed Sends</span>
+                    <span class="settings-value" style="color:var(--danger);">{{ report.failed }}</span>
+                </li>
+                <li>
+                    <span class="settings-label">Dry-Run Sends</span>
+                    <span class="settings-value" style="color:var(--warning);">{{ report.dry_run }}</span>
+                </li>
+                <li>
+                    <span class="settings-label">Duplicates Skipped</span>
+                    <span class="settings-value" style="color:var(--info);">{{ report.duplicates_skipped }}</span>
+                </li>
+                <li>
+                    <span class="settings-label">Success Rate</span>
+                    <span class="settings-value" style="color:var(--success);">{{ report.success_rate }}%</span>
+                </li>
+            </ul>
+            <div style="margin-top:20px;">
+                <a href="/download-report" class="btn btn-outline btn-sm">⬇ Download Report CSV</a>
+            </div>
+        </div>
+
+        <div class="panel">
+            <div class="panel-title">📈 Success Rate</div>
+            <div style="text-align:center; padding:30px 0;">
+                <div style="font-size:3.5rem; font-weight:800; color:var(--success); line-height:1;">
+                    {{ report.success_rate }}%
+                </div>
+                <div style="color:var(--text-secondary); margin-top:8px; font-size:0.85rem;">
+                    Campaign success rate
+                </div>
+            </div>
+            <div class="progress-bar" style="height:12px;">
+                <div class="progress-fill success" style="width: {{ report.success_rate }}%;"></div>
+            </div>
+
+            <div style="margin-top:24px;">
+                <div class="panel-title" style="font-size:0.9rem;">Classification Breakdown</div>
+                <div style="display:flex; gap:24px; margin-top:8px;">
+                    <div>
+                        <span class="badge badge-info">BUSINESS</span>
+                        <strong style="margin-left:8px;">{{ report.business_contacts }}</strong>
+                    </div>
+                    <div>
+                        <span class="badge badge-warning">INDIVIDUAL</span>
+                        <strong style="margin-left:8px;">{{ report.individual_contacts }}</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Send Log Table -->
+    <div class="panel">
+        <div class="panel-title">📋 Send Log</div>
+
+        {% if log %}
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Email</th>
+                        <th>Timestamp</th>
+                        <th>Status</th>
+                        <th>Subject</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for entry in log %}
+                    <tr>
+                        <td>{{ entry.email }}</td>
+                        <td style="font-size:0.8rem; color:var(--text-muted);">{{ entry.timestamp }}</td>
+                        <td>
+                            {% if entry.status == 'sent' %}
+                            <span class="badge badge-success">Sent</span>
+                            {% elif entry.status == 'failed' %}
+                            <span class="badge badge-danger">Failed</span>
+                            {% elif entry.status == 'dry-run' %}
+                            <span class="badge badge-warning">Dry-Run</span>
+                            {% else %}
+                            <span class="badge badge-info">{{ entry.status }}</span>
+                            {% endif %}
+                        </td>
+                        <td style="max-width:300px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;">
+                            {{ entry.subject }}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-icon">📭</div>
+            <p>No sends recorded yet. Run a campaign to see results here.</p>
+        </div>
+        {% endif %}
+    </div>
+
+</main>
+
+<script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>
