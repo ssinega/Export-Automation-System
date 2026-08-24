@@ -42,8 +42,11 @@ app = Flask(__name__)
 app.secret_key = Config.SECRET_KEY
 app.config["MAX_CONTENT_LENGTH"] = Config.MAX_UPLOAD_SIZE
 
-# Ensure CSV files exist on startup
-init_csv_files()
+# Safely initialize CSV files on startup if filesystem is writable
+try:
+    init_csv_files()
+except Exception as exc:
+    print(f"[App] Startup CSV initialization skipped: {exc}")
 
 
 # ──────────────────────────────────────────────────────────────
@@ -60,6 +63,23 @@ def _allowed_file(filename: str) -> bool:
 # ──────────────────────────────────────────────────────────────
 # Routes
 # ──────────────────────────────────────────────────────────────
+
+@app.route("/health")
+def health():
+    """Lightweight health check endpoint for monitoring & Vercel."""
+    return jsonify({
+        "status": "ok",
+        "service": "export-automation"
+    }), 200
+
+
+@app.errorhandler(500)
+def internal_server_error(e):
+    """Graceful 500 error handler."""
+    return jsonify({
+        "error": "Internal Server Error",
+        "message": "An unexpected error occurred. Please check server logs for details."
+    }), 500
 
 @app.route("/")
 def index():

@@ -113,27 +113,34 @@ def save_buyers(records: list[dict], append: bool = True) -> int:
     Returns:
         Number of new records saved.
     """
-    os.makedirs(Config.DATA_DIR, exist_ok=True)
-    filepath = Config.BUYERS_CSV
+    try:
+        os.makedirs(Config.DATA_DIR, exist_ok=True)
+        filepath = Config.BUYERS_CSV
 
-    if append and os.path.exists(filepath):
-        existing_df = pd.read_csv(filepath)
-        existing_emails = set(existing_df["email"].str.lower().str.strip())
-        new_records = [r for r in records if r["email"] not in existing_emails]
-    else:
-        new_records = records
+        if append and os.path.exists(filepath):
+            existing_df = pd.read_csv(filepath)
+            existing_emails = set(existing_df["email"].str.lower().str.strip())
+            new_records = [r for r in records if r["email"] not in existing_emails]
+        else:
+            new_records = records
 
-    if not new_records:
+        if not new_records:
+            return 0
+
+        new_df = pd.DataFrame(new_records, columns=Config.BUYER_HEADERS)
+
+        if append and os.path.exists(filepath):
+            new_df.to_csv(filepath, mode="a", header=False, index=False)
+        else:
+            new_df.to_csv(filepath, index=False)
+
+        return len(new_records)
+    except (PermissionError, OSError) as exc:
+        print(f"[Extractor] Warning: Could not save buyers to CSV (read-only filesystem): {exc}")
         return 0
-
-    new_df = pd.DataFrame(new_records, columns=Config.BUYER_HEADERS)
-
-    if append and os.path.exists(filepath):
-        new_df.to_csv(filepath, mode="a", header=False, index=False)
-    else:
-        new_df.to_csv(filepath, index=False)
-
-    return len(new_records)
+    except Exception as exc:
+        print(f"[Extractor] Error saving buyers: {exc}")
+        return 0
 
 
 def load_buyers() -> pd.DataFrame:

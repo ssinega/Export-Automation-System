@@ -22,20 +22,25 @@ def init_csv_files():
     This should be called at application startup to prevent crashes
     from missing files.
     """
-    os.makedirs(Config.DATA_DIR, exist_ok=True)
+    try:
+        os.makedirs(Config.DATA_DIR, exist_ok=True)
 
-    csv_files = {
-        Config.BUYERS_CSV: Config.BUYER_HEADERS,
-        Config.BUSINESS_EMAILS_CSV: ["email_address"],
-        Config.INDIVIDUAL_EMAILS_CSV: ["email_address"],
-        Config.SENT_LOG_CSV: Config.SENT_LOG_HEADERS,
-    }
+        csv_files = {
+            Config.BUYERS_CSV: Config.BUYER_HEADERS,
+            Config.BUSINESS_EMAILS_CSV: ["email_address"],
+            Config.INDIVIDUAL_EMAILS_CSV: ["email_address"],
+            Config.SENT_LOG_CSV: Config.SENT_LOG_HEADERS,
+        }
 
-    for filepath, headers in csv_files.items():
-        if not os.path.exists(filepath):
-            df = pd.DataFrame(columns=headers)
-            df.to_csv(filepath, index=False)
-            print(f"[Logger] Created {filepath}")
+        for filepath, headers in csv_files.items():
+            if not os.path.exists(filepath):
+                df = pd.DataFrame(columns=headers)
+                df.to_csv(filepath, index=False)
+                print(f"[Logger] Created {filepath}")
+    except (PermissionError, OSError) as exc:
+        print(f"[Logger] Warning: Could not initialize CSV files (read-only filesystem): {exc}")
+    except Exception as exc:
+        print(f"[Logger] Unexpected error initializing CSV files: {exc}")
 
 
 def log_activity(email: str, status: str, subject: str = ""):
@@ -47,20 +52,25 @@ def log_activity(email: str, status: str, subject: str = ""):
         status: One of 'sent', 'failed', 'dry-run'.
         subject: Email subject line.
     """
-    os.makedirs(Config.DATA_DIR, exist_ok=True)
-    filepath = Config.SENT_LOG_CSV
+    try:
+        os.makedirs(Config.DATA_DIR, exist_ok=True)
+        filepath = Config.SENT_LOG_CSV
 
-    record = pd.DataFrame([{
-        "email": email.lower().strip(),
-        "timestamp": datetime.now().isoformat(),
-        "status": status,
-        "subject": subject,
-    }])
+        record = pd.DataFrame([{
+            "email": email.lower().strip(),
+            "timestamp": datetime.now().isoformat(),
+            "status": status,
+            "subject": subject,
+        }])
 
-    if os.path.exists(filepath):
-        record.to_csv(filepath, mode="a", header=False, index=False)
-    else:
-        record.to_csv(filepath, index=False)
+        if os.path.exists(filepath):
+            record.to_csv(filepath, mode="a", header=False, index=False)
+        else:
+            record.to_csv(filepath, index=False)
+    except (PermissionError, OSError) as exc:
+        print(f"[Logger] Warning: Could not write activity log (read-only filesystem): {exc}")
+    except Exception as exc:
+        print(f"[Logger] Error writing activity log: {exc}")
 
 
 def get_sent_log() -> pd.DataFrame:

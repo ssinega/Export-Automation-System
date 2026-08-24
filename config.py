@@ -4,10 +4,13 @@ All settings are loaded from environment variables via .env file.
 """
 
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 
 # Load environment variables from .env file
 load_dotenv()
+
+BASE_DIR = Path(__file__).resolve().parent
 
 
 class Config:
@@ -39,7 +42,7 @@ class Config:
     DRY_RUN = os.getenv("DRY_RUN", "true").lower() == "true"
 
     # --- Presentation ---
-    PRESENTATION_PATH = os.getenv("PRESENTATION_PATH", "assets/company_presentation.pdf")
+    PRESENTATION_PATH = os.getenv("PRESENTATION_PATH", str(BASE_DIR / "assets" / "company_presentation.pdf"))
 
     # --- Safe Customize Defaults ---
     DEFAULT_SUBJECT = "Singing Bowls – Export Partnership Opportunity"
@@ -54,7 +57,7 @@ class Config:
     CLASSIFICATION_PREFERENCE = "gemini"
 
     # --- File Paths ---
-    DATA_DIR = "data"
+    DATA_DIR = str(BASE_DIR / "data")
     BUYERS_CSV = os.path.join(DATA_DIR, "buyers.csv")
     BUSINESS_EMAILS_CSV = os.path.join(DATA_DIR, "business_emails.csv")
     INDIVIDUAL_EMAILS_CSV = os.path.join(DATA_DIR, "individual_emails.csv")
@@ -120,15 +123,13 @@ class Config:
     def save_custom_settings(cls, settings: dict):
         """Save safe settings to data/settings.json and update Config class."""
         import json
-        os.makedirs(cls.DATA_DIR, exist_ok=True)
-        settings_path = os.path.join(cls.DATA_DIR, "settings.json")
-        
         allowed_keys = {
             "SEARCH_KEYWORD", "DAILY_SEND_LIMIT", "SEND_DELAY",
             "DEFAULT_SUBJECT", "DEFAULT_BODY", "CLASSIFICATION_PREFERENCE"
         }
         
         existing = {}
+        settings_path = os.path.join(cls.DATA_DIR, "settings.json")
         if os.path.exists(settings_path):
             try:
                 with open(settings_path, "r", encoding="utf-8") as f:
@@ -146,6 +147,7 @@ class Config:
                     existing[k] = str(v)
                     
         try:
+            os.makedirs(cls.DATA_DIR, exist_ok=True)
             with open(settings_path, "w", encoding="utf-8") as f:
                 json.dump(existing, f, indent=4)
             cls.load_custom_settings()

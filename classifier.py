@@ -135,18 +135,23 @@ def _classify_local(buyers: list[dict]) -> dict:
 
 def _save_classified(business: list[dict], individual: list[dict]):
     """Save classified records to their respective CSV files."""
-    os.makedirs(Config.DATA_DIR, exist_ok=True)
+    try:
+        os.makedirs(Config.DATA_DIR, exist_ok=True)
 
-    if business:
-        df = pd.DataFrame([b.get("email", "").lower().strip() for b in business], columns=["email_address"])
-        df.to_csv(Config.BUSINESS_EMAILS_CSV, index=False)
+        if business:
+            df = pd.DataFrame([b.get("email", "").lower().strip() for b in business], columns=["email_address"])
+            df.to_csv(Config.BUSINESS_EMAILS_CSV, index=False)
 
-    if individual:
-        df = pd.DataFrame([i.get("email", "").lower().strip() for i in individual], columns=["email_address"])
-        df.to_csv(Config.INDIVIDUAL_EMAILS_CSV, index=False)
+        if individual:
+            df = pd.DataFrame([i.get("email", "").lower().strip() for i in individual], columns=["email_address"])
+            df.to_csv(Config.INDIVIDUAL_EMAILS_CSV, index=False)
 
-    print(f"[Classifier] Classified: {len(business)} business, "
-          f"{len(individual)} individual.")
+        print(f"[Classifier] Classified: {len(business)} business, "
+              f"{len(individual)} individual.")
+    except (PermissionError, OSError) as exc:
+        print(f"[Classifier] Warning: Could not save classified CSVs (read-only filesystem): {exc}")
+    except Exception as exc:
+        print(f"[Classifier] Error saving classified CSVs: {exc}")
 
 
 def load_classified(audience: str = "all") -> list[dict]:
