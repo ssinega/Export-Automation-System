@@ -1,12 +1,12 @@
 @echo off
 setlocal enabledelayedexpansion
-title Push Vercel Entrypoint Fix to GitHub
+title Push Vercel Deployment Config Fix to GitHub
 
 cd /d "C:\Users\Admin\Downloads\task 1\export-automation"
 
 echo.
 echo ============================================================
-echo   EXPORT AUTOMATION — Push Vercel Entrypoint Fix to GitHub
+echo   EXPORT AUTOMATION — Push Vercel Deployment Config Fix
 echo ============================================================
 echo.
 
@@ -18,7 +18,7 @@ echo Staging all files...
 git add -A
 
 echo Committing...
-git commit -m "Fix Vercel entrypoint in pyproject.toml to use dotted module syntax api.index:app" --allow-empty
+git commit -m "Use explicit @vercel/python build configuration in vercel.json for api/index.py" --allow-empty
 
 echo Pushing to GitHub main...
 git push -u origin main

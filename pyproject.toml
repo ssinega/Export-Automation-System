@@ -1,2 +1,1 @@
-[tool.vercel]
-entrypoint = "api.index:app"
+# pyproject.toml
